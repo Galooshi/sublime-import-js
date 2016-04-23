@@ -1,17 +1,11 @@
 Thanks for installing ImportJS! Before you can start using the plugin, you also
-need to install a few dependencies:
+need to install the `importjs` binary.
 
-1. Install the import_js gem
+   `npm install import-js -g`
 
-   `gem install import_js`
+You also might have to configure import-js
 
-2. Install eslint
-
-   `npm install -g eslint`
-
-3. Configure import-js
-
-   See https://github.com/trotzig/import-js for more information
+   See https://github.com/Galooshi/import-js for more information
 
 4. Open the root of your project as a folder (Project -> Add Folder to Project…)
 
@@ -22,7 +16,7 @@ and select "ImportJS: fix all imports", or "ImportJS: import word under cursor".
 It will be helpful to bind `import_js` to easy-to-use bindings, such as:
 
 ```
-{ "keys": ["super+alt+i"], "command": "import_js" },
-{ "keys": ["super+alt+j"], "command": "import_js", "args": { "word": true } },
-{ "keys": ["super+alt+g"], "command": "import_js", "args": { "word": true, "goto": true } },
+{ "keys": ["super+alt+i"], "command": "import_js", "args": { "command": "fix" } },
+{ "keys": ["super+alt+j"], "command": "import_js", "args": { "command": "word" } },
+{ "keys": ["super+alt+g"], "command": "import_js", "args": { "command": "goto" } },
 ```

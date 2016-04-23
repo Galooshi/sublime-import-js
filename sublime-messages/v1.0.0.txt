@@ -1,0 +1,7 @@
+In version 1.0.0, the import-js Ruby-powered binary has been replaced with a
+Node powered binary. To continue using import-js, you need to install the new
+binary:
+
+  npm install import-js -g
+
+https://github.com/trotzig/import-js/releases

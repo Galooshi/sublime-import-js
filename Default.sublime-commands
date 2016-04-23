@@ -1,16 +1,17 @@
 [
   {
     "caption": "ImportJS: fix all imports",
-    "command": "import_js"
+    "command": "import_js",
+    "args": {"command": "fix"}
   },
   {
     "caption": "ImportJS: import word under cursor",
     "command": "import_js",
-    "args": {"word": true}
+    "args": {"command": "word"}
   },
   {
     "caption": "ImportJS: goto module",
     "command": "import_js",
-    "args": {"word": true, "goto": true}
+    "args": {"command": "goto"}
   }
 ]
