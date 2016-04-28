@@ -3,23 +3,17 @@
 1. Install the [ImportJS plugin via Package
    Control](https://packagecontrol.io/packages/ImportJS)
 
-2. Install the import_js gem
+2. Install the import-js npm package
 
    ```sh
-   gem install import_js
+   npm install -g import-js
    ```
 
-3. Install eslint
+3. [Configure import-js](README.md#configuration)
 
-   ```sh
-   npm install -g eslint
-   ```
+4. Open the root of your project as a folder (Project -> Add Folder to Project…)
 
-4. [Configure import-js](README.md#configuration)
-
-5. Open the root of your project as a folder (Project -> Add Folder to Project…)
-
-6. Import a file!
+5. Import a file!
 
    Whenever you have undefined variables, open the Command Palette
    (`CTRL+SHIFT+P`/`CMD+SHIFT+P`) and select "ImportJS: fix all imports", or
@@ -36,21 +30,20 @@ It will be helpful to bind `import_js` to easy-to-use bindings, such as:
 ## Troubleshooting
 
 If you get an error message saying something like "Can't find import-js
-executable", you may need to specify a path to the `import-js` executable in
+executable", you may need to specify a path to the `importjs` executable in
 configuration. This likely means that you are using a tool like
-[rbenv](https://github.com/rbenv/rbenv) or [rvm](https://rvm.io/) to
-manage multiple Ruby versions on your system.
+[nvm](http://nvm.sh) manage multiple Node versions on your system.
 
 To fix this, edit the ImportJS User Settings from the Preferences > Package
 Settings > ImportJS > Settings — User menu and set the `executable` option to
-point to the path to the `import-js` executable. Example:
+point to the path to the `importjs` executable. Example:
 
 ```json
 {
-  "executable": "/Users/USERNAME/.rbenv/shims/import-js"
+  "executable": "/Users/USERNAME/.nvm/versions/node/v4.4.3/bin/importjs"
 }
 ```
 
 Please note that you can't use ~ to refer to the home directory, you need to
-specify the full path. To figure out where your import-js executable is located,
-you can run `which import-js` from your project's directory.
+specify the full path. To figure out where your `importjs` executable is
+located, you can run `which importjs` from your project's directory.
