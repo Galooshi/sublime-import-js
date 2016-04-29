@@ -1,4 +1,4 @@
-Here are a few tips to make it simpler to test a local copy of import-js in
+Here are a few tips to make it simpler to test a local copy of ImportJS in
 Sublime:
 
 ## Symlink
