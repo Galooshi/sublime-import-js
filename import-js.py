@@ -72,7 +72,15 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 stderr=subprocess.PIPE
             )
         except FileNotFoundError as e:
-            sublime.error_message(no_executable_error(executable))
+            if(e.strerror.find(executable) > -1):
+                # If the executable is in the error message, then we believe
+                # that the executable cannot be found and show a more helpful
+                # message.
+                sublime.error_message(no_executable_error(executable))
+            else:
+                # Something other than the executable cannot be found, so we
+                # pass through the original message.
+                sublime.error_message(e.strerror)
             raise e
 
         result = proc.communicate(input=current_file_contents.encode('utf-8'))
