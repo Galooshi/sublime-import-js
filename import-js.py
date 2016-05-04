@@ -89,12 +89,12 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         if(proc.returncode > 0):
             sublime.error_message(
-                'Error when executing import-js:\n\n' + stderr)
+                'Error when executing importjs:\n\n' + stderr)
             return
 
         if(len(stdout) == 0):
             sublime.error_message(
-                'Nothing returned when executing import-js:\n\n' + stderr)
+                'Nothing returned when executing importjs:\n\n' + stderr)
             return
 
         result = json.loads(stdout)
