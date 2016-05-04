@@ -7,7 +7,7 @@ You also might have to configure import-js
 
    See https://github.com/Galooshi/import-js for more information
 
-4. Open the root of your project as a folder (Project -> Add Folder to Project…)
+Open the root of your project as a folder (Project -> Add Folder to Project…)
 
 When you are done with that, it's time to start importing files! Whenever you
 have undefined variables, open the Command Palette (CTRL+SHIFT+P/CMD+SHIFT+P)
