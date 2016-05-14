@@ -1,0 +1,6 @@
+Version 0.7.2 makes the plugin better at finding your `PATH` environment
+variable. If you have changed the "exectuable" setting to work around not finding
+`node` or `importjs`, you might be able to remove that workaround now.
+
+As always, you should also update the import-js binary by running
+`npm install -g import-js`

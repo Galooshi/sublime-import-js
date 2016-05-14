@@ -5,6 +5,41 @@ import sublime
 import sublime_plugin
 import subprocess
 
+import_js_environment={}
+
+def extract_path():
+    # We have to delimit the PATH output with markers because
+    # text might be output during shell startup.
+    out = subprocess.Popen(
+        [os.environ['SHELL'], '-l', '-c',
+            'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"'],
+        env=os.environ,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    ).communicate()[0].decode()
+    path = out.split('__SUBL_PATH__', 2)
+
+    if len(path) > 1:
+        return path[1]
+
+    return ''
+
+def plugin_loaded():
+    global import_js_environment
+
+    import_js_environment = dict(os.environ).copy()
+    import_js_environment.update({
+        'LC_ALL': 'en_US.UTF-8',
+        'LC_CTYPE': 'UTF-8',
+        'LANG': 'en_US.UTF-8',
+    })
+
+    import_js_environment.update({
+        'PATH': extract_path(),
+    })
+
+    print('ImportJS loaded with environment:')
+    print(import_js_environment)
 
 def no_executable_error(executable):
     return dedent('''
@@ -25,7 +60,6 @@ def no_executable_error(executable):
         from the command line in your project's root.
         '''.format(executable=executable)).strip()
 
-
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):
         self.view.replace(
@@ -37,13 +71,6 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         current_file_contents = self.view.substr(
             sublime.Region(0, self.view.size()))
 
-        environment = dict(os.environ).copy()
-        environment.update({
-            'LC_ALL': 'en_US.UTF-8',
-            'LC_CTYPE': 'UTF-8',
-            'LANG': 'en_US.UTF-8',
-            'PATH': environment.get('PATH') + ':/usr/local/bin'
-        })
         project_root = self.view.window().extract_variables()['folder']
         settings = sublime.load_settings('ImportJS.sublime-settings')
 
@@ -66,7 +93,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             proc = subprocess.Popen(
                 command,
                 cwd=project_root,
-                env=environment,
+                env=import_js_environment,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
