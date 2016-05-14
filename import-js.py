@@ -5,7 +5,8 @@ import sublime
 import sublime_plugin
 import subprocess
 
-import_js_environment={}
+import_js_environment = {}
+
 
 def extract_path():
     # We have to delimit the PATH output with markers because
@@ -24,6 +25,7 @@ def extract_path():
 
     return ''
 
+
 def plugin_loaded():
     global import_js_environment
 
@@ -40,6 +42,7 @@ def plugin_loaded():
 
     print('ImportJS loaded with environment:')
     print(import_js_environment)
+
 
 def no_executable_error(executable):
     return dedent('''
@@ -59,6 +62,7 @@ def no_executable_error(executable):
         To see where importjs binary is located, run `which importjs`
         from the command line in your project's root.
         '''.format(executable=executable)).strip()
+
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):
@@ -141,7 +145,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 self.project_path() + '/' + result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
-                {"characters": result.get('fileContent')})
+                                  {"characters": result.get('fileContent')})
 
     def project_path(self):
         for folder in self.view.window().project_data().get('folders'):
@@ -164,7 +168,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
             self.view.show_popup_menu(
                 list(map(lambda imp: imp.get('displayName'),
-                    unresolved_imports[word])),
+                         unresolved_imports[word])),
                 on_done
             )
 
