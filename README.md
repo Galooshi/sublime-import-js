@@ -32,11 +32,24 @@ It will be helpful to bind `import_js` to easy-to-use bindings, such as:
 If you get an error message saying something like "Can't find import-js
 executable", you may need to specify a path to the `importjs` executable in
 configuration. This likely means that you are using a tool like
-[nvm](http://nvm.sh) manage multiple Node versions on your system.
+[nvm](http://nvm.sh) or [nodenv](https://github.com/nodenv/nodenv) to manage
+multiple Node versions on your system.
 
-To fix this, edit the ImportJS User Settings from the Preferences > Package
-Settings > ImportJS > Settings — User menu and set the `executable` option to
-point to the path to the `importjs` executable. Example:
+To fix this, you need to make sure that the code that sets up your `PATH` is in
+the correct location. This plugin will open a login shell to determine the
+proper `PATH`, so the code that sets up your `PATH` needs to be in a file that
+is sourced for login shells. Here's a handy table:
+
+Shell          | File
+---------------|---------------------------
+bash           | ~/.bash_profile
+zsh (Mac OS X) | ~/.zprofile
+zsh (Linux)    | ~/.zshenv or ~/.zprofile
+fish           | ~/.config/fish/config.fish
+
+Alternatively, you can also try editing the ImportJS User Settings from the
+Preferences > Package Settings > ImportJS > Settings — User menu and set the
+`executable` option to point to the path to the `importjs` executable. Example:
 
 ```json
 {

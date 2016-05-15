@@ -51,9 +51,14 @@ def no_executable_error(executable):
         Make sure you have the `importjs` binary installed (`npm install
         import-js -g`).
 
-        If it is installed but you still get this message, you might have to
-        set a custom `executable` in your ImportJS package user settings.
-        Example:
+        If it is installed but you still get this message, and you are using
+        something like nvm or nodenv, you probably need to configure your PATH
+        correctly. Make sure that the code that sets up your PATH for these
+        tools is located in .bash_profile, .zprofile, or the equivalent file
+        for your shell.
+
+        Alternatively, you might have to set a custom `executable` in your
+        ImportJS package user settings. Example:
 
         {{
             "executable": "/usr/local/bin/importjs"
