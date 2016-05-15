@@ -4,7 +4,7 @@ Sublime:
 ## Symlink
 
 Make a symlink inside your Sublime packages folder to the local copy of
-sublime-import-js. Every time you change the `import_js.py` file the plugin will
+sublime-import-js. Every time you change the `import-js.py` file the plugin will
 reload.
 
 ```sh
