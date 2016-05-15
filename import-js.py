@@ -141,6 +141,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 args['command'] = 'add'
                 args['imports'] = resolved_imports
                 self.run(edit, **args)
+            self.view.run_command("import_js_replace",
+                                  {"characters": result.get('fileContent')})
             self.ask_to_resolve(result.get('unresolvedImports'),
                                 handle_resolved_imports)
             return
