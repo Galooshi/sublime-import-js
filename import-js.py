@@ -149,15 +149,10 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         if(cmd == 'goto'):
             self.view.window().open_file(
-                self.project_path() + '/' + result.get('goto'))
+                project_root + '/' + result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
                                   {"characters": result.get('fileContent')})
-
-    def project_path(self):
-        for folder in self.view.window().project_data().get('folders'):
-            if(self.view.file_name().startswith(folder.get('path'))):
-                return folder.get('path')
 
     def ask_to_resolve(self, unresolved_imports, on_resolve):
         resolved = {}
