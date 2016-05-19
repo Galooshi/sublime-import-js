@@ -1,0 +1,6 @@
+Version 0.7.3 changes how we open files when using `goto`. This should hopefully
+resolve issues some people have seen with using `goto`.
+
+There's no need to update the `importjs` binary for this version, but it won't
+hurt. Just run
+`npm install -g import-js`
