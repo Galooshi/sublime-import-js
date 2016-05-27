@@ -9,21 +9,24 @@ import_js_environment = {}
 
 
 def extract_path():
-    # We have to delimit the PATH output with markers because
-    # text might be output during shell startup.
-    out = subprocess.Popen(
-        [os.environ['SHELL'], '-l', '-c',
-            'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"'],
-        env=os.environ,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    ).communicate()[0].decode()
-    path = out.split('__SUBL_PATH__', 2)
+    if 'SHELL' in os.environ:
+        # We have to delimit the PATH output with markers because
+        # text might be output during shell startup.
+        out = subprocess.Popen(
+            [os.environ['SHELL'], '-l', '-c',
+                'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"'],
+            env=os.environ,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()[0].decode()
+        path = out.split('__SUBL_PATH__', 2)
 
-    if len(path) > 1:
-        return path[1]
+        if len(path) > 1:
+            return path[1]
 
-    return ''
+        return ''
+    else:
+        return os.environ['PATH']
 
 
 def plugin_loaded():
