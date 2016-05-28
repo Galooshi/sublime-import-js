@@ -101,6 +101,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         print(command)
 
+        is_windows = os.name == 'nt'
+
         try:
             proc = subprocess.Popen(
                 command,
@@ -108,7 +110,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 env=import_js_environment,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
+                shell=is_windows
             )
         except FileNotFoundError as e:
             if(e.strerror.find(executable) > -1):
