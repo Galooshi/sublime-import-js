@@ -1,0 +1,2 @@
+You can now run import-js on Windows machine. Make sure to update to the latest
+importjs binary by running `npm install importjs`.
