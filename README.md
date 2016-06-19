@@ -48,12 +48,11 @@ zsh (Linux)    | ~/.zshenv or ~/.zprofile
 fish           | ~/.config/fish/config.fish
 
 Alternatively, you can also try editing the ImportJS User Settings from the
-Preferences > Package Settings > ImportJS > Settings — User menu and set the
-`executable` option to point to the path to the `importjs` executable. Example:
+Preferences > Package Settings > ImportJS > Settings — User menu and add the folder where the `importjs` executable is located to the `paths` option. Example:
 
 ```json
 {
-  "executable": "/Users/USERNAME/.nvm/versions/node/v4.4.3/bin/importjs"
+  "paths": ["/Users/USERNAME/.nvm/versions/node/v4.4.3/bin"]
 }
 ```
 

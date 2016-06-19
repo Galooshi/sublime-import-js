@@ -39,8 +39,15 @@ def plugin_loaded():
         'LANG': 'en_US.UTF-8',
     })
 
+    path_env_variable = extract_path()
+
+    settings = sublime.load_settings('ImportJS.sublime-settings')
+    setting_paths = settings.get('paths')
+    if setting_paths:
+        path_env_variable = ':'.join(setting_paths) + ':' + path_env_variable
+            
     import_js_environment.update({
-        'PATH': extract_path(),
+        'PATH': path_env_variable,
     })
 
     print('ImportJS loaded with environment:')
@@ -60,11 +67,11 @@ def no_executable_error(executable):
         tools is located in .bash_profile, .zprofile, or the equivalent file
         for your shell.
 
-        Alternatively, you might have to set a custom `executable` in your
+        Alternatively, you might have to set the `paths` option in your
         ImportJS package user settings. Example:
 
         {{
-            "executable": "/usr/local/bin/importjs"
+            "paths": ["/Users/USERNAME/.nvm/versions/node/v4.4.3/bin"]
         }}
 
         To see where importjs binary is located, run `which importjs`
@@ -84,9 +91,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             sublime.Region(0, self.view.size()))
 
         project_root = self.view.window().extract_variables()['folder']
-        settings = sublime.load_settings('ImportJS.sublime-settings')
 
-        executable = settings.get('executable')
+        executable = 'importjs'
         cmd = args.get('command')
         command = [executable, cmd]
 
