@@ -22,9 +22,9 @@
 It will be helpful to bind `import_js` to easy-to-use bindings, such as:
 
 ```json
-{ "keys": ["super+alt+i"], "command": "import_js" },
-{ "keys": ["super+alt+j"], "command": "import_js", "args": { "word": true } },
-{ "keys": ["super+alt+g"], "command": "import_js", "args": { "word": true, "goto": true } },
+{ "keys": ["super+alt+i"], "command": "import_js", "args": { "command": "fix" } },
+{ "keys": ["super+alt+j"], "command": "import_js", "args": { "command": "word" } },
+{ "keys": ["super+alt+g"], "command": "import_js", "args": { "command": "goto" } },
 ```
 
 ## Troubleshooting
