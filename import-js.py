@@ -106,7 +106,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         try:
             daemon = subprocess.Popen(
-                [executable, '--sublime-pid=' + str(os.getppid())],
+                [executable, '--parent-pid=' + str(os.getppid())],
                 cwd=self.project_root(),
                 env=import_js_environment,
                 stdin=subprocess.PIPE,
