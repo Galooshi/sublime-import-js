@@ -6,7 +6,7 @@ import sublime_plugin
 import subprocess
 
 import_js_environment = {}
-daemon = None
+daemons = {}
 
 
 def extract_path():
@@ -54,12 +54,10 @@ def plugin_loaded():
     print(import_js_environment)
 
 def plugin_unloaded():
-    global daemon
-    if (daemon is None):
-        return
-    print('Stopping ImportJS daemon process')
-    daemon.terminate()
-
+    global daemons
+    for cwd, daemon in daemons.items():
+        print('Stopping ImportJS daemon process for cwd ' + cwd)
+        daemon.terminate()
 
 def no_executable_error(executable):
     return dedent('''
@@ -96,18 +94,18 @@ class ImportJsCommand(sublime_plugin.TextCommand):
     def project_root(self):
         return self.view.window().extract_variables()['folder']
 
-    def start_or_get_daemon(self):
-        global daemon
-        if (daemon):
-            return daemon
+    def start_or_get_daemon(self, cwd):
+        global daemons
+        if (cwd in daemons):
+            return daemons[cwd]
 
         is_windows = os.name == 'nt'
         executable = 'importjsd'
 
         try:
             daemon = subprocess.Popen(
-                [executable, '--parent-pid=' + str(os.getppid())],
-                cwd=self.project_root(),
+                [executable, '--parent-pid', str(os.getppid())],
+                cwd=cwd,
                 env=import_js_environment,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
@@ -119,6 +117,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             # ignore this line so that we can expect json output when running
             # commands.
             daemon.stdout.readline()
+
+            daemons[cwd] = daemon
 
             return daemon
         except FileNotFoundError as e:
@@ -153,7 +153,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
 
         print(payload)
-        process = self.start_or_get_daemon()
+        process = self.start_or_get_daemon(self.project_root())
         process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
         process.stdin.flush()
         resultJson = process.stdout.readline().decode('utf-8')
