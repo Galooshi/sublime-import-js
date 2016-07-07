@@ -1,0 +1,11 @@
+Version 1.0.0 contains some good performance improvements, mainly by running
+ImportJS in a background thread. To continue using the plugin, you need to
+update to the latest version of the import-js npm package:
+
+  npm install import-js -g
+
+For even better performance, ImportJS integrates with Watchman. The watchman
+dependency is optional. If you have it installed, ImportJS will utilize it. To
+install Watchman, follow instructions here:
+
+  https://facebook.github.io/watchman/
