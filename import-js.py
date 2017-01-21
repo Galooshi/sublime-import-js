@@ -180,8 +180,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             return
 
         if(cmd == 'goto'):
-            self.view.window().open_file(
-                self.project_root() + '/' + result.get('goto'))
+            self.view.window().open_file(result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
                                   {"characters": result.get('fileContent')})
