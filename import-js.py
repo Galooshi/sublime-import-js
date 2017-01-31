@@ -6,7 +6,7 @@ import sublime_plugin
 import subprocess
 
 import_js_environment = {}
-daemons = {}
+daemon = None
 
 
 def extract_path():
@@ -54,10 +54,10 @@ def plugin_loaded():
     print(import_js_environment)
 
 def plugin_unloaded():
-    global daemons
-    for cwd, daemon in daemons.items():
-        print('Stopping ImportJS daemon process for cwd ' + cwd)
-        daemon.terminate()
+    global daemon
+    print('Stopping ImportJS daemon process')
+    daemon.terminate()
+    daemon = None
 
 def no_executable_error(executable):
     return dedent('''
@@ -94,10 +94,10 @@ class ImportJsCommand(sublime_plugin.TextCommand):
     def project_root(self):
         return self.view.window().extract_variables()['folder']
 
-    def start_or_get_daemon(self, cwd):
-        global daemons
-        if (cwd in daemons):
-            return daemons[cwd]
+    def start_or_get_daemon(self):
+        global daemon
+        if (daemon != None):
+            return daemon
 
         is_windows = os.name == 'nt'
         executable = 'importjsd'
@@ -105,7 +105,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         try:
             daemon = subprocess.Popen(
                 [executable, 'start', '--parent-pid', str(os.getppid())],
-                cwd=cwd,
+                cwd=self.project_root(),
                 env=import_js_environment,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
@@ -117,8 +117,6 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             # ignore this line so that we can expect json output when running
             # commands.
             daemon.stdout.readline()
-
-            daemons[cwd] = daemon
 
             return daemon
         except FileNotFoundError as e:
@@ -153,7 +151,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
 
         print(payload)
-        process = self.start_or_get_daemon(self.project_root())
+        process = self.start_or_get_daemon()
         process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
         process.stdin.flush()
         resultJson = process.stdout.readline().decode('utf-8')
@@ -180,8 +178,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             return
 
         if(cmd == 'goto'):
-            self.view.window().open_file(
-                self.project_root() + '/' + result.get('goto'))
+            self.view.window().open_file(result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
                                   {"characters": result.get('fileContent')})
