@@ -1,0 +1,4 @@
+Version 1.2.0 requires version 2.7.0 or later of import-js. Make sure you update
+import-js as well by running:
+
+  npm install import-js -g
