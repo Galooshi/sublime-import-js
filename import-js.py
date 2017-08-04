@@ -194,7 +194,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
             def on_done(i):
                 if(i > -1):
-                    resolved[word] = unresolved_imports[word][i]['importPath']
+                    resolved[word] = unresolved_imports[word][i]['data']
                 ask_recurse(next(unresolved_iter, None))
 
             self.view.show_popup_menu(
