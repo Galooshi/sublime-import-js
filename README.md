@@ -1,4 +1,7 @@
-# Running import-js in Sublime Text
+ImportJS is a tool that helps you import dependencies in your JavaScript project. 
+More information is available in the main [import-js project](https://github.com/Galooshi/import-js). 
+
+## Running import-js in Sublime Text
 
 1. Install the [ImportJS plugin via Package
    Control](https://packagecontrol.io/packages/ImportJS)
