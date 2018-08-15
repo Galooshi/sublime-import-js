@@ -14,7 +14,7 @@ ln -s ~/sublime-import-js sublime-import-js
 
 ## Code of conduct
 
-This project adheres to the [Open Code of Conduct][code-of-conduct]. By
+This project adheres to the [Contributor Covenant Code of Conduct][code-of-conduct]. By
 participating, you are expected to honor this code.
 
-[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Import-JS/henric.trotzig@gmail.com
+[code-of-conduct]: CODE_OF_CONDUCT.md
