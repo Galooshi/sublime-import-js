@@ -7,12 +7,13 @@ import queue
 import sublime # pylint: disable=import-error
 import sublime_plugin # pylint: disable=import-error
 
-DEBUG = False
+DEBUG = True
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
 DAEMON_QUEUE = None
 DAEMON_THREAD = None
 EXECUTABLE = 'importjsd'
+DAEMON_POLL_INTERVAL = 10
 
 
 def extract_path():
@@ -59,7 +60,7 @@ def plugin_loaded():
         print('ImportJS loaded with environment:')
         print(IMPORT_JS_ENVIRONMENT)
 
-def plugin_unloaded():
+def terminate_daemon():
     global DAEMON
     if DAEMON is None:
         return
@@ -69,6 +70,9 @@ def plugin_unloaded():
 
     DAEMON.terminate()
     DAEMON = None
+
+def plugin_unloaded():
+    terminate_daemon()
 
 def no_executable_error(executable):
     return dedent('''
@@ -180,11 +184,20 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         if DEBUG:
             print('Command payload:')
             print(payload)
-        daemon_process, _ = self.get_daemon()
-        daemon_process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
-        daemon_process.stdin.flush()
+        self.write_daemon_command(payload)
         self.wait_for_daemon_response(
             lambda response: self.handle_daemon_response(response, edit, command, args))
+
+    def write_daemon_command(self, payload):
+        daemon_process, _ = self.get_daemon()
+        daemon_process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
+        try:
+            daemon_process.stdin.flush()
+        except (BrokenPipeError, IOError):
+            if DEBUG:
+                print("Something went wrong with the process, restarting...")
+            terminate_daemon()
+            self.write_daemon_command(payload)
 
     def handle_daemon_response(self, result_json, edit, command, command_args):
         if DEBUG:
@@ -218,7 +231,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
     def wait_for_daemon_response(self, callback=None):
         self.waiting_for_daemon_response = True
-        sublime.set_timeout_async(lambda: self.read_daemon_response(callback), 100)
+        sublime.set_timeout_async(lambda: self.read_daemon_response(callback), DAEMON_POLL_INTERVAL)
 
     def read_daemon_response(self, callback):
         _, daemon_queue = self.get_daemon()
