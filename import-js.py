@@ -7,6 +7,7 @@ import sublime_plugin
 
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
+EXECUTABLE = 'importjsd'
 
 
 def extract_path():
@@ -62,7 +63,7 @@ def no_executable_error(executable):
     return dedent('''
         Couldn't find executable {executable}.
 
-        Make sure you have the `importjsd` binary installed (`npm install
+        Make sure you have the `{executable}` binary installed (`npm install
         import-js -g`).
 
         If it is installed but you still get this message, and you are using
@@ -78,7 +79,7 @@ def no_executable_error(executable):
             "paths": ["/Users/USERNAME/.nvm/versions/node/v4.4.3/bin"]
         }}
 
-        To see where the importjsd binary is located, run `which importjsd`
+        To see where the {executable} binary is located, run `which {executable}`
         from the command line in your project's root.
         '''.format(executable=executable)).strip()
 
@@ -99,11 +100,10 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             return DAEMON
 
         is_windows = os.name == 'nt'
-        executable = 'importjsd'
 
         try:
             DAEMON = subprocess.Popen(
-                [executable, 'start', '--parent-pid', str(os.getppid())],
+                [EXECUTABLE, 'start', '--parent-pid', str(os.getppid())],
                 cwd=self.project_root(),
                 env=IMPORT_JS_ENVIRONMENT,
                 stdin=subprocess.PIPE,
@@ -119,11 +119,11 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
             return DAEMON
         except FileNotFoundError as exception:
-            if str(exception).find(executable) > -1:
+            if str(exception).find(EXECUTABLE) > -1:
                 # If the executable is in the error message, then we believe
                 # that the executable cannot be found and show a more helpful
                 # message.
-                sublime.error_message(no_executable_error(executable))
+                sublime.error_message(no_executable_error(EXECUTABLE))
             else:
                 # Something other than the executable cannot be found, so we
                 # pass through the original message.
