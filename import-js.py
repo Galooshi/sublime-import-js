@@ -168,17 +168,17 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         command = args.get('command')
         payload = {
-            "command": command,
-            "pathToFile": self.view.file_name(),
-            "fileContent": current_file_contents,
+            'command': command,
+            'pathToFile': self.view.file_name(),
+            'fileContent': current_file_contents,
         }
 
         if(command == 'word' or command == 'goto'):
-            payload["commandArg"] = self.view.substr(
+            payload['commandArg'] = self.view.substr(
                 self.view.word(self.view.sel()[0]))
 
         if command == 'add':
-            payload["commandArg"] = args.get('imports')
+            payload['commandArg'] = args.get('imports')
 
 
         if DEBUG:
@@ -195,7 +195,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             daemon_process.stdin.flush()
         except (BrokenPipeError, IOError):
             if DEBUG:
-                print("Something went wrong with the process, restarting...")
+                print('Something went wrong with the process, restarting...')
             terminate_daemon()
             self.write_daemon_command(payload)
 
@@ -217,8 +217,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 command_args['command'] = 'add'
                 command_args['imports'] = resolved_imports
                 self.run(edit, **command_args)
-            self.view.run_command("import_js_replace",
-                                  {"characters": result.get('fileContent')})
+            self.view.run_command('import_js_replace',
+                                  {'characters': result.get('fileContent')})
             self.ask_to_resolve(result.get('unresolvedImports'),
                                 handle_resolved_imports)
             return
@@ -226,8 +226,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         if command == 'goto':
             self.view.window().open_file(result.get('goto'))
         else:
-            self.view.run_command("import_js_replace",
-                                  {"characters": result.get('fileContent')})
+            self.view.run_command('import_js_replace',
+                                  {'characters': result.get('fileContent')})
 
     def wait_for_daemon_response(self, callback=None):
         self.waiting_for_daemon_response = True
