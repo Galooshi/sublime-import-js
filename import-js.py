@@ -90,8 +90,8 @@ def no_executable_error(executable):
         '''.format(executable=executable)).strip()
 
 def enqueue_output(stdout, target):
-    for line in iter(stdout.readline, ''):
-        target.put(line)
+    for line in iter(stdout.readline, b''):
+        target.put(line.decode('utf-8'))
     stdout.close()
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
