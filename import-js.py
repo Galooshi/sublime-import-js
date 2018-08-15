@@ -7,6 +7,7 @@ import queue
 import sublime # pylint: disable=import-error
 import sublime_plugin # pylint: disable=import-error
 
+DEBUG = False
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
 DAEMON_QUEUE = None
@@ -54,14 +55,18 @@ def plugin_loaded():
         'PATH': path_env_variable,
     })
 
-    print('ImportJS loaded with environment:')
-    print(IMPORT_JS_ENVIRONMENT)
+    if DEBUG:
+        print('ImportJS loaded with environment:')
+        print(IMPORT_JS_ENVIRONMENT)
 
 def plugin_unloaded():
     global DAEMON
     if DAEMON is None:
         return
-    print('Stopping ImportJS daemon process')
+
+    if DEBUG:
+        print('Stopping ImportJS daemon process')
+
     DAEMON.terminate()
     DAEMON = None
 
@@ -172,7 +177,9 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             payload["commandArg"] = args.get('imports')
 
 
-        print(payload)
+        if DEBUG:
+            print('Command payload:')
+            print(payload)
         daemon_process, _ = self.get_daemon()
         daemon_process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
         daemon_process.stdin.flush()
@@ -180,7 +187,9 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             lambda response: self.handle_daemon_response(response, edit, command, args))
 
     def handle_daemon_response(self, result_json, edit, command, command_args):
-        print(result_json)
+        if DEBUG:
+            print('Command response:')
+            print(result_json)
         result = json.loads(result_json)
 
         if result.get('error'):
@@ -215,7 +224,6 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         _, daemon_queue = self.get_daemon()
         try:
             response = daemon_queue.get_nowait()
-            print(response)
             self.waiting_for_daemon_response = False
             if callback is not None:
                 callback(response)
