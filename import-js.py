@@ -14,6 +14,8 @@ DAEMON_QUEUE = None
 DAEMON_THREAD = None
 EXECUTABLE = 'importjsd'
 DAEMON_POLL_INTERVAL = 10
+STATUS_KEY = 'import-js'
+STATUS_MESSAGE_WAITING_FOR_RESPONSE = 'Looking for imports...'
 
 
 def extract_path():
@@ -235,6 +237,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
     def wait_for_daemon_response(self, callback=None):
         self.waiting_for_daemon_response = True
+        if not self.view.get_status(STATUS_KEY):
+            self.view.set_status(STATUS_KEY, STATUS_MESSAGE_WAITING_FOR_RESPONSE)
         sublime.set_timeout_async(lambda: self.read_daemon_response(callback), DAEMON_POLL_INTERVAL)
 
     def read_daemon_response(self, callback):
@@ -242,6 +246,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         try:
             response = daemon_queue.get_nowait()
             self.waiting_for_daemon_response = False
+            self.view.erase_status(STATUS_KEY)
             if callback is not None:
                 callback(response)
         except queue.Empty:
