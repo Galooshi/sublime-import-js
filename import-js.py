@@ -16,6 +16,7 @@ EXECUTABLE = 'importjsd'
 DAEMON_POLL_INTERVAL = 10
 STATUS_KEY = 'import-js'
 STATUS_MESSAGE_WAITING_FOR_RESPONSE = 'Looking for imports...'
+WAITING_FOR_DAEMON_RESPONSE = False
 
 
 def extract_path():
@@ -64,6 +65,10 @@ def plugin_loaded():
 
 def terminate_daemon():
     global DAEMON
+    global WAITING_FOR_DAEMON_RESPONSE
+
+    WAITING_FOR_DAEMON_RESPONSE = False
+
     if DAEMON is None:
         return
 
@@ -115,8 +120,6 @@ class ImportJsReplaceCommand(sublime_plugin.TextCommand):
 
 
 class ImportJsCommand(sublime_plugin.TextCommand):
-    waiting_for_daemon_response = False
-
     def project_root(self):
         return self.view.window().extract_variables()['folder']
 
@@ -166,7 +169,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             raise exception
 
     def run(self, edit, **args):
-        if self.waiting_for_daemon_response:
+        global WAITING_FOR_DAEMON_RESPONSE
+        if WAITING_FOR_DAEMON_RESPONSE:
             return
 
         current_file_contents = self.view.substr(
@@ -236,16 +240,22 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                                   {'characters': result.get('fileContent')})
 
     def wait_for_daemon_response(self, callback=None):
-        self.waiting_for_daemon_response = True
+        global WAITING_FOR_DAEMON_RESPONSE
+        WAITING_FOR_DAEMON_RESPONSE = True
+
         if not self.view.get_status(STATUS_KEY):
             self.view.set_status(STATUS_KEY, STATUS_MESSAGE_WAITING_FOR_RESPONSE)
         sublime.set_timeout_async(lambda: self.read_daemon_response(callback), DAEMON_POLL_INTERVAL)
 
     def read_daemon_response(self, callback):
+        global WAITING_FOR_DAEMON_RESPONSE
+        if not WAITING_FOR_DAEMON_RESPONSE:
+            return
+
         _, daemon_queue = self.get_daemon()
         try:
             response = daemon_queue.get_nowait()
-            self.waiting_for_daemon_response = False
+            WAITING_FOR_DAEMON_RESPONSE = False
             self.view.erase_status(STATUS_KEY)
             if callback is not None:
                 callback(response)
