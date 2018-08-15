@@ -1,5 +1,5 @@
-ImportJS is a tool that helps you import dependencies in your JavaScript project. 
-More information is available in the main [import-js project](https://github.com/Galooshi/import-js). 
+ImportJS is a tool that helps you import dependencies in your JavaScript project.
+More information is available in the main [import-js project](https://github.com/Galooshi/import-js).
 
 ## Running import-js in Sublime Text
 
@@ -29,6 +29,13 @@ It will be helpful to bind `import_js` to easy-to-use bindings, such as:
 { "keys": ["super+alt+j"], "command": "import_js", "args": { "command": "word" } },
 { "keys": ["super+alt+g"], "command": "import_js", "args": { "command": "goto" } },
 ```
+
+## Available commands:
+
+* "ImportJS: fix all imports"
+* "ImportJS: import word under cursor"
+* "ImportJS: goto module"
+* "ImportJS: terminate daemon"
 
 ## Troubleshooting
 

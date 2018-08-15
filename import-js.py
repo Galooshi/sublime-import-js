@@ -7,7 +7,7 @@ import queue
 import sublime # pylint: disable=import-error
 import sublime_plugin # pylint: disable=import-error
 
-DEBUG = True
+DEBUG = False
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
 DAEMON_QUEUE = None
@@ -102,6 +102,10 @@ def enqueue_output(stdout, target):
     for line in iter(stdout.readline, b''):
         target.put(line.decode('utf-8'))
     stdout.close()
+
+class ImportJsTerminateCommand(sublime_plugin.ApplicationCommand):
+    def run(self): # pylint: disable=no-self-use
+        terminate_daemon()
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):

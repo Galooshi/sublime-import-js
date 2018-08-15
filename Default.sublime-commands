@@ -13,5 +13,9 @@
     "caption": "ImportJS: goto module",
     "command": "import_js",
     "args": {"command": "goto"}
+  },
+  {
+    "caption": "ImportJS: terminate daemon",
+    "command": "import_js_terminate",
   }
 ]
