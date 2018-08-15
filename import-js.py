@@ -1,12 +1,13 @@
 from textwrap import dedent
 import json
 import os
-import sublime
-import sublime_plugin
 import subprocess
+import sublime # pylint: disable=import-error
+import sublime_plugin # pylint: disable=import-error
 
-import_js_environment = {}
-daemon = None
+IMPORT_JS_ENVIRONMENT = {}
+DAEMON = None
+EXECUTABLE = 'importjsd'
 
 
 def extract_path():
@@ -14,8 +15,7 @@ def extract_path():
         # We have to delimit the PATH output with markers because
         # text might be output during shell startup.
         out = subprocess.Popen(
-            [os.environ['SHELL'], '-l', '-c',
-                'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"'],
+            [os.environ['SHELL'], '-l', '-c', 'echo "__SUBL_PATH__${PATH}__SUBL_PATH__"'],
             env=os.environ,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -30,10 +30,10 @@ def extract_path():
         return os.environ['PATH']
 
 def plugin_loaded():
-    global import_js_environment
+    global IMPORT_JS_ENVIRONMENT
 
-    import_js_environment = dict(os.environ).copy()
-    import_js_environment.update({
+    IMPORT_JS_ENVIRONMENT = dict(os.environ).copy()
+    IMPORT_JS_ENVIRONMENT.update({
         'LC_ALL': 'en_US.UTF-8',
         'LC_CTYPE': 'UTF-8',
         'LANG': 'en_US.UTF-8',
@@ -46,24 +46,24 @@ def plugin_loaded():
     if setting_paths:
         path_env_variable = ':'.join(setting_paths) + ':' + path_env_variable
 
-    import_js_environment.update({
+    IMPORT_JS_ENVIRONMENT.update({
         'PATH': path_env_variable,
     })
 
     print('ImportJS loaded with environment:')
-    print(import_js_environment)
+    print(IMPORT_JS_ENVIRONMENT)
 
 def plugin_unloaded():
-    global daemon
+    global DAEMON
     print('Stopping ImportJS daemon process')
-    daemon.terminate()
-    daemon = None
+    DAEMON.terminate()
+    DAEMON = None
 
 def no_executable_error(executable):
     return dedent('''
         Couldn't find executable {executable}.
 
-        Make sure you have the `importjsd` binary installed (`npm install
+        Make sure you have the `{executable}` binary installed (`npm install
         import-js -g`).
 
         If it is installed but you still get this message, and you are using
@@ -79,15 +79,14 @@ def no_executable_error(executable):
             "paths": ["/Users/USERNAME/.nvm/versions/node/v4.4.3/bin"]
         }}
 
-        To see where the importjsd binary is located, run `which importjsd`
+        To see where the {executable} binary is located, run `which {executable}`
         from the command line in your project's root.
         '''.format(executable=executable)).strip()
 
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):
-        self.view.replace(
-            edit, sublime.Region(0, self.view.size()), characters)
+        self.view.replace(edit, sublime.Region(0, self.view.size()), characters)
 
 
 class ImportJsCommand(sublime_plugin.TextCommand):
@@ -95,18 +94,17 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         return self.view.window().extract_variables()['folder']
 
     def start_or_get_daemon(self):
-        global daemon
-        if (daemon != None):
-            return daemon
+        global DAEMON
+        if DAEMON is not None:
+            return DAEMON
 
         is_windows = os.name == 'nt'
-        executable = 'importjsd'
 
         try:
-            daemon = subprocess.Popen(
-                [executable, 'start', '--parent-pid', str(os.getppid())],
+            DAEMON = subprocess.Popen(
+                [EXECUTABLE, 'start', '--parent-pid', str(os.getppid())],
                 cwd=self.project_root(),
-                env=import_js_environment,
+                env=IMPORT_JS_ENVIRONMENT,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -116,20 +114,20 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             # something like "DAEMON active. Logs will go to [...]". We need to
             # ignore this line so that we can expect json output when running
             # commands.
-            daemon.stdout.readline()
+            DAEMON.stdout.readline()
 
-            return daemon
-        except FileNotFoundError as e:
-            if(e.strerror.find(executable) > -1):
+            return DAEMON
+        except FileNotFoundError as exception:
+            if str(exception).find(EXECUTABLE) > -1:
                 # If the executable is in the error message, then we believe
                 # that the executable cannot be found and show a more helpful
                 # message.
-                sublime.error_message(no_executable_error(executable))
+                sublime.error_message(no_executable_error(EXECUTABLE))
             else:
                 # Something other than the executable cannot be found, so we
                 # pass through the original message.
-                sublime.error_message(e.strerror)
-            raise e
+                sublime.error_message(exception.strerror)
+            raise exception
 
     def run(self, edit, **args):
         current_file_contents = self.view.substr(
@@ -144,29 +142,29 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         if(cmd == 'word' or cmd == 'goto'):
             payload["commandArg"] = self.view.substr(
-                    self.view.word(self.view.sel()[0]))
+                self.view.word(self.view.sel()[0]))
 
-        if(cmd == 'add'):
-            payload["commandArg"] = args.get('imports');
+        if cmd == 'add':
+            payload["commandArg"] = args.get('imports')
 
 
         print(payload)
         process = self.start_or_get_daemon()
         process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
         process.stdin.flush()
-        resultJson = process.stdout.readline().decode('utf-8')
-        print(resultJson)
+        result_json = process.stdout.readline().decode('utf-8')
+        print(result_json)
 
-        result = json.loads(resultJson)
+        result = json.loads(result_json)
 
-        if(result.get('error')):
+        if result.get('error'):
             sublime.error_message(
                 'Error when executing importjs:\n\n' + result.get('error'))
             return
 
-        if(result.get('messages')):
+        if result.get('messages'):
             sublime.status_message('\n'.join(result.get('messages')))
-        if(result.get('unresolvedImports')):
+        if result.get('unresolvedImports'):
             def handle_resolved_imports(resolved_imports):
                 args['command'] = 'add'
                 args['imports'] = resolved_imports
@@ -177,7 +175,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                                 handle_resolved_imports)
             return
 
-        if(cmd == 'goto'):
+        if cmd == 'goto':
             self.view.window().open_file(result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
@@ -188,12 +186,12 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         unresolved_iter = iter(unresolved_imports)
 
         def ask_recurse(word):
-            if (not(word)):
+            if not word:
                 on_resolve(resolved)
                 return
 
             def on_done(i):
-                if(i > -1):
+                if i > -1:
                     resolved[word] = unresolved_imports[word][i]['data']
                 ask_recurse(next(unresolved_iter, None))
 
