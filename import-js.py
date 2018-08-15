@@ -2,11 +2,15 @@ from textwrap import dedent
 import json
 import os
 import subprocess
+import threading
+import queue
 import sublime # pylint: disable=import-error
 import sublime_plugin # pylint: disable=import-error
 
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
+DAEMON_QUEUE = None
+DAEMON_THREAD = None
 EXECUTABLE = 'importjsd'
 
 
@@ -55,6 +59,8 @@ def plugin_loaded():
 
 def plugin_unloaded():
     global DAEMON
+    if DAEMON is None:
+        return
     print('Stopping ImportJS daemon process')
     DAEMON.terminate()
     DAEMON = None
@@ -83,6 +89,10 @@ def no_executable_error(executable):
         from the command line in your project's root.
         '''.format(executable=executable)).strip()
 
+def enqueue_output(stdout, target):
+    for line in iter(stdout.readline, ''):
+        target.put(line)
+    stdout.close()
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):
@@ -90,13 +100,17 @@ class ImportJsReplaceCommand(sublime_plugin.TextCommand):
 
 
 class ImportJsCommand(sublime_plugin.TextCommand):
+    waiting_for_daemon_response = False
+
     def project_root(self):
         return self.view.window().extract_variables()['folder']
 
-    def start_or_get_daemon(self):
+    def get_daemon(self):
         global DAEMON
+        global DAEMON_QUEUE
+        global DAEMON_THREAD
         if DAEMON is not None:
-            return DAEMON
+            return DAEMON, DAEMON_QUEUE
 
         is_windows = os.name == 'nt'
 
@@ -110,13 +124,20 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 stderr=subprocess.PIPE,
                 shell=is_windows
             )
+            DAEMON_QUEUE = queue.Queue()
+            DAEMON_THREAD = threading.Thread(
+                target=enqueue_output,
+                args=(DAEMON.stdout, DAEMON_QUEUE)
+            )
+            DAEMON_THREAD.daemon = True
+            DAEMON_THREAD.start()
             # The daemon process will print one line at startup of the command,
-            # something like "DAEMON active. Logs will go to [...]". We need to
+            # something like "Daemon active. Logs will go to [...]". We need to
             # ignore this line so that we can expect json output when running
             # commands.
-            DAEMON.stdout.readline()
+            self.wait_for_daemon_response()
 
-            return DAEMON
+            return DAEMON, DAEMON_QUEUE
         except FileNotFoundError as exception:
             if str(exception).find(EXECUTABLE) > -1:
                 # If the executable is in the error message, then we believe
@@ -130,31 +151,36 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             raise exception
 
     def run(self, edit, **args):
+        if self.waiting_for_daemon_response:
+            return
+
         current_file_contents = self.view.substr(
             sublime.Region(0, self.view.size()))
 
-        cmd = args.get('command')
+        command = args.get('command')
         payload = {
-            "command": cmd,
+            "command": command,
             "pathToFile": self.view.file_name(),
             "fileContent": current_file_contents,
         }
 
-        if(cmd == 'word' or cmd == 'goto'):
+        if(command == 'word' or command == 'goto'):
             payload["commandArg"] = self.view.substr(
                 self.view.word(self.view.sel()[0]))
 
-        if cmd == 'add':
+        if command == 'add':
             payload["commandArg"] = args.get('imports')
 
 
         print(payload)
-        process = self.start_or_get_daemon()
-        process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
-        process.stdin.flush()
-        result_json = process.stdout.readline().decode('utf-8')
-        print(result_json)
+        daemon_process, _ = self.get_daemon()
+        daemon_process.stdin.write((json.dumps(payload) + '\n').encode('utf-8'))
+        daemon_process.stdin.flush()
+        self.wait_for_daemon_response(
+            lambda response: self.handle_daemon_response(response, edit, command, args))
 
+    def handle_daemon_response(self, result_json, edit, command, command_args):
+        print(result_json)
         result = json.loads(result_json)
 
         if result.get('error'):
@@ -166,20 +192,35 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             sublime.status_message('\n'.join(result.get('messages')))
         if result.get('unresolvedImports'):
             def handle_resolved_imports(resolved_imports):
-                args['command'] = 'add'
-                args['imports'] = resolved_imports
-                self.run(edit, **args)
+                command_args['command'] = 'add'
+                command_args['imports'] = resolved_imports
+                self.run(edit, **command_args)
             self.view.run_command("import_js_replace",
                                   {"characters": result.get('fileContent')})
             self.ask_to_resolve(result.get('unresolvedImports'),
                                 handle_resolved_imports)
             return
 
-        if cmd == 'goto':
+        if command == 'goto':
             self.view.window().open_file(result.get('goto'))
         else:
             self.view.run_command("import_js_replace",
                                   {"characters": result.get('fileContent')})
+
+    def wait_for_daemon_response(self, callback=None):
+        self.waiting_for_daemon_response = True
+        sublime.set_timeout_async(lambda: self.read_daemon_response(callback), 100)
+
+    def read_daemon_response(self, callback):
+        _, daemon_queue = self.get_daemon()
+        try:
+            response = daemon_queue.get_nowait()
+            print(response)
+            self.waiting_for_daemon_response = False
+            if callback is not None:
+                callback(response)
+        except queue.Empty:
+            self.wait_for_daemon_response(callback)
 
     def ask_to_resolve(self, unresolved_imports, on_resolve):
         resolved = {}
