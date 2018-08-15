@@ -2,8 +2,8 @@ from textwrap import dedent
 import json
 import os
 import subprocess
-import sublime
-import sublime_plugin
+import sublime # pylint: disable=import-error
+import sublime_plugin # pylint: disable=import-error
 
 IMPORT_JS_ENVIRONMENT = {}
 DAEMON = None
@@ -30,7 +30,7 @@ def extract_path():
         return os.environ['PATH']
 
 def plugin_loaded():
-    global IMPORT_JS_ENVIRONMENT # pylint: disable=global-statement
+    global IMPORT_JS_ENVIRONMENT
 
     IMPORT_JS_ENVIRONMENT = dict(os.environ).copy()
     IMPORT_JS_ENVIRONMENT.update({
@@ -54,7 +54,7 @@ def plugin_loaded():
     print(IMPORT_JS_ENVIRONMENT)
 
 def plugin_unloaded():
-    global DAEMON # pylint: disable=global-statement
+    global DAEMON
     print('Stopping ImportJS daemon process')
     DAEMON.terminate()
     DAEMON = None
@@ -94,7 +94,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         return self.view.window().extract_variables()['folder']
 
     def start_or_get_daemon(self):
-        global DAEMON # pylint: disable=global-statement
+        global DAEMON
         if DAEMON is not None:
             return DAEMON
 
