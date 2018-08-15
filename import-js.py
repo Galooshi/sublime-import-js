@@ -86,8 +86,7 @@ def no_executable_error(executable):
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
     def run(self, edit, characters):
-        self.view.replace(
-            edit, sublime.Region(0, self.view.size()), characters)
+        self.view.replace(edit, sublime.Region(0, self.view.size()), characters)
 
 
 class ImportJsCommand(sublime_plugin.TextCommand):
@@ -143,7 +142,7 @@ class ImportJsCommand(sublime_plugin.TextCommand):
 
         if(cmd == 'word' or cmd == 'goto'):
             payload["commandArg"] = self.view.substr(
-                    self.view.word(self.view.sel()[0]))
+                self.view.word(self.view.sel()[0]))
 
         if cmd == 'add':
             payload["commandArg"] = args.get('imports')
