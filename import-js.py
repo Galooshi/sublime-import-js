@@ -4,8 +4,8 @@ import os
 import subprocess
 import threading
 import queue
-import sublime # pylint: disable=import-error
-import sublime_plugin # pylint: disable=import-error
+import sublime
+import sublime_plugin
 
 DEBUG = False
 IMPORT_JS_ENVIRONMENT = {}
@@ -115,7 +115,7 @@ class ImportJsTerminateCommand(sublime_plugin.ApplicationCommand):
         terminate_daemon()
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
-    def run(self, edit, characters):
+    def run(self, edit, characters): # pylint: disable=arguments-differ
         self.view.replace(edit, sublime.Region(0, self.view.size()), characters)
 
 
@@ -168,10 +168,12 @@ class ImportJsCommand(sublime_plugin.TextCommand):
                 sublime.error_message(exception.strerror)
             raise exception
 
-    def run(self, edit, **args):
+    def run(self, edit, **args): # pylint: disable=arguments-differ
         global WAITING_FOR_DAEMON_RESPONSE
         if WAITING_FOR_DAEMON_RESPONSE:
             return
+
+        WAITING_FOR_DAEMON_RESPONSE = True
 
         current_file_contents = self.view.substr(
             sublime.Region(0, self.view.size()))
@@ -210,6 +212,8 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             self.write_daemon_command(payload)
 
     def handle_daemon_response(self, result_json, edit, command, command_args):
+        global WAITING_FOR_DAEMON_RESPONSE
+
         if DEBUG:
             print('Command response:')
             print(result_json)
@@ -239,10 +243,9 @@ class ImportJsCommand(sublime_plugin.TextCommand):
             self.view.run_command('import_js_replace',
                                   {'characters': result.get('fileContent')})
 
-    def wait_for_daemon_response(self, callback=None):
-        global WAITING_FOR_DAEMON_RESPONSE
-        WAITING_FOR_DAEMON_RESPONSE = True
+        WAITING_FOR_DAEMON_RESPONSE = False
 
+    def wait_for_daemon_response(self, callback=None):
         if not self.view.get_status(STATUS_KEY):
             self.view.set_status(STATUS_KEY, STATUS_MESSAGE_WAITING_FOR_RESPONSE)
         sublime.set_timeout_async(lambda: self.read_daemon_response(callback), DAEMON_POLL_INTERVAL)
@@ -255,7 +258,6 @@ class ImportJsCommand(sublime_plugin.TextCommand):
         _, daemon_queue = self.get_daemon()
         try:
             response = daemon_queue.get_nowait()
-            WAITING_FOR_DAEMON_RESPONSE = False
             self.view.erase_status(STATUS_KEY)
             if callback is not None:
                 callback(response)
