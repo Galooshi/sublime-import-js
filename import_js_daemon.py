@@ -5,7 +5,7 @@ import subprocess
 import threading
 import sublime
 
-DEBUG = True
+DEBUG = False
 IMPORT_JS_ENVIRONMENT = {}
 EXECUTABLE = 'importjsd'
 DAEMON_POLL_INTERVAL = 10

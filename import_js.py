@@ -3,15 +3,16 @@ import sublime
 import sublime_plugin
 from .import_js_daemon import ImportJsDaemon
 
-DEBUG = True
+DEBUG = False
 STATUS_KEY = 'import-js'
-STATUS_MESSAGE_WAITING_FOR_RESPONSE = 'Looking for imports...'
+STATUS_MESSAGE_WAITING_FOR_RESPONSE = 'Running ImportJS command...'
 
 def plugin_unloaded():
     ImportJsDaemon.shutdown()
 
-class ImportJsTerminateCommand(sublime_plugin.ApplicationCommand):
-    def run(self): # pylint: disable=no-self-use
+class ImportJsTerminateCommand(sublime_plugin.TextCommand):
+    def run(self): # pylint: disable=arguments-differ
+        self.view.erase_status(STATUS_KEY)
         ImportJsDaemon.shutdown()
 
 class ImportJsReplaceCommand(sublime_plugin.TextCommand):
