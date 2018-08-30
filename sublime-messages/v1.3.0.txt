@@ -1,0 +1,7 @@
+Version 1.3.0 makes the plugin smoother to use by running commands
+asynchronously. Thanks to @monovertex for the contribution!
+
+As always, it's a good thing to stay up to date with the latest import-js
+version:
+
+  npm install -g import-js
