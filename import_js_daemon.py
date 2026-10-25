@@ -44,8 +44,8 @@ def plugin_loaded():
     settings = sublime.load_settings('ImportJS.sublime-settings')
     setting_paths = settings.get('paths')
     if setting_paths:
-        path_env_variable = ':'.join(setting_paths) + ':' + path_env_variable
-
+        path_env_variable = os.pathsep.join(setting_paths) + os.pathsep + path_env_variable
+        
     IMPORT_JS_ENVIRONMENT.update({
         'PATH': path_env_variable,
     })
